@@ -2,6 +2,7 @@
 const user = require("./cmds_user.js");
 const quiz = require("./cmds_quiz.js");
 const favs = require("./cmds_favs.js");
+const score = require("./cmds_score.js");
 const readline = require('readline');
 
 const rl = readline.createInterface({
@@ -41,6 +42,12 @@ rl.on('line', async (line) => {
     else if (['cf', 'fc'].includes(cmd))      { await favs.create(rl);}
     else if (['df', 'fd'].includes(cmd))      { await favs.delete(rl);}
 
+    // Debe incluirse el nuevo comando p (play) que comienza una nueva ronda de preguntas.
+    else if ('p'===cmd)  { await quiz.play(rl); }
+
+    // las puntuaciones de los usuarios deben poder consultarse usando el comando ls (list score)
+    else if ('ls'===cmd) {  await score.list(rl); }
+
     else if ('e'===cmd)  { rl.log('Bye!'); process.exit(0);}
     else                 {  rl.log('UNSUPPORTED COMMAND!');
                             user.help(rl);
@@ -48,4 +55,3 @@ rl.on('line', async (line) => {
     } catch (err) { rl.log(`  ${err}`);}
     finally       { rl.prompt(); }
   });
-

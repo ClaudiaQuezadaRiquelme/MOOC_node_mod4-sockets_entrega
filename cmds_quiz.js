@@ -1,4 +1,4 @@
-
+const Score = require("./cmds_score.js");
 const {User, Quiz} = require("./model.js").models;
 
 // Show all quizzes in DB including <id> and <author>
@@ -83,3 +83,35 @@ exports.delete = async (rl) => {
   rl.log(`  ${id} deleted from DB`);
 }
 
+// los quizzes almacenados en el sistema (en concreto el campo question de cada quiz) van mostrándose (usando la función rl.questionP) de manera aleatoria y consecutiva para tratar de contestarlos.
+exports.play = async (rl) => {
+  let quizzes = await Quiz.findAll(); // obtener todos id de los quizes
+  let idArr = [];
+  quizzes.forEach( q => idArr.push(q.id) ); // guardamos los ID en un array que vamos a desordenar
+  idArr = idArr.sort( () => { return Math.random() - 0.5 }); // ordena los id al azar
+  
+  let score = 0; // almacenamos puntaje
+
+  // recorremos la lista de id desordenada para mostrar las preguntas al azar
+  for (const id of idArr) { // foreach doesn´t work with async/await 
+    let quiz = await Quiz.findByPk(Number(id));
+    let correctAnswer = quiz.answer.toLowerCase().trim();
+    let enteredAnswer = await rl.questionP(quiz.question);
+    if (enteredAnswer.toLowerCase().trim() === correctAnswer) {
+      rl.log(`The answer "${enteredAnswer}" is right!`);
+      score += 1; // puntaje
+    } else { 
+      rl.log(`The answer "${enteredAnswer}" is wrong!`);
+      break; // si se contesta incorrectamente, el juego termina. No se muestran más quizzes
+    }
+  }
+  // mostrar score cuando se hayan terminado los quizzes
+  rl.log(`Score: ${score}`);
+
+  // solicitar nombre de usuario para guardar su puntuación
+  const userName = await rl.questionP("Enter your name to store your score");
+
+  // guardar score en la base de datos
+  await Score.store(rl, userName, score);
+  
+}
